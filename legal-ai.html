@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>律小达 - 智能法律助手专业版</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #2A5CAA;
+            --accent-orange: #FF6B35;
+        }
+        
+        body {
+            font-family: 'Segoe UI', '思源黑体', sans-serif;
+            background: #f8f9fa;
+        }
+
+        .nav-bar {
+            background: var(--primary-blue);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-blue) 30%, #3A7CCA 100%);
+            color: white;
+            padding: 4rem 0;
+        }
+
+        .chat-box {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            min-height: 400px;
+        }
+
+        .ai-message {
+            background: #e9f5ff;
+            border-radius: 15px 15px 0 15px;
+            max-width: 80%;
+            animation: slideInLeft 0.3s ease;
+        }
+
+        .user-message {
+            background: var(--accent-orange);
+            color: white;
+            border-radius: 15px 15px 15px 0;
+            max-width: 80%;
+            animation: slideInRight 0.3s ease;
+        }
+
+        .game-card {
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+        .game-card:hover {
+            transform: translateY(-5px);
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(50px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideInLeft {
+            from { transform: translateX(-50px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .legal-clause {
+            background: #f8f9fa;
+            border-left: 4px solid var(--primary-blue);
+            padding: 10px 15px;
+            margin: 10px 0;
+            font-size: 0.95em;
+        }
+
+        .action-steps {
+            background: #e9f5ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="nav-bar navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">律小达</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#qa">AI问答</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#game">普法游戏</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#docs">文书生成</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主页横幅 -->
+    <section class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-4 mb-4">AI赋能法律认知</h1>
+            <p class="lead">智能法律咨询系统｜实时案例解析｜文书自动生成</p>
+            <button class="btn btn-lg btn-warning mt-3" onclick="startGame()">立即体验</button>
+        </div>
+    </section>
+
+    <!-- AI问答模块 -->
+    <section id="qa" class="container my-5">
+        <div class="chat-box p-4">
+            <div id="chatArea" class="mb-3" style="height: 300px; overflow-y: auto"></div>
+            <div class="input-group">
+                <input type="text" id="userInput" class="form-control" 
+                       placeholder="输入法律问题，如：同学欠钱不还怎么办？">
+                <button class="btn btn-primary" onclick="getAIResponse()">发送</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 普法游戏模块 -->
+    <section id="game" class="container my-5">
+        <h2 class="text-center mb-4">法律知识闯关</h2>
+        <div class="row g-4" id="gameContainer"></div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p>免责声明：本平台内容仅供参考，不构成法律建议</p>
+            <p>数据来源：国家法律法规数据库</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ================== 增强法律知识库 ==================
+        const legalQA = {
+            "兼职": {
+                answer: `根据《劳动法》第三十条：
+                <div class="legal-clause">
+                    1. 用人单位不得克扣或无故拖欠工资<br>
+                    2. 维权电话：12333（劳动监察）
+                </div>`,
+                related: ["工资", "劳动合同"]
+            },
+            "租房": {
+                answer: `依据《民法典》第七百零三条：
+                <div class="legal-clause">
+                    1. 房东不得单方提高租金<br>
+                    2. 维修责任由房东承担
+                </div>`,
+                related: ["押金", "违约金"]
+            },
+            "借款": {
+                answer: `<div class="legal-clause">
+                    《民法典》第六百七十五条：
+                    1. 借款人应按期返还借款<br>
+                    2. 诉讼时效3年
+                </div>
+                <div class="action-steps">
+                    <strong>操作步骤：</strong>
+                    <ol>
+                        <li>收集借条/转账记录</li>
+                        <li>发送催款通知书</li>
+                        <li>申请支付令（50元）</li>
+                    </ol>
+                </div>`,
+                related: ["利息计算", "诉讼流程"]
+            },
+            "欠款": {
+                answer: `<div class="legal-clause">
+                    《民事诉讼法》第一百一十九条：
+                    1. 明确的被告<br>
+                    2. 具体的诉讼请求
+                </div>`,
+                related: ["强制执行", "财产保全"]
+            }
+        };
+
+        // ================== 输入预处理 ==================
+        function preprocessInput(input) {
+            const cleaned = input
+                .replace(/[。,？!]/g, '')
+                .toLowerCase();
+            
+            const synonymMap = {
+                "同学": "", "不还": "未还", 
+                "借钱": "借款", "欠钱": "欠款"
+            };
+            
+            return Object.keys(synonymMap).reduce((str, key) => 
+                str.replace(new RegExp(key, 'g'), synonymMap[key]), cleaned);
+        }
+
+        // ================== 智能问答引擎 ==================
+        function analyzeQuestion(input) {
+            const cleanedInput = preprocessInput(input);
+            const patterns = [
+                /不还钱/, /欠.*不还/, /借.*没还/,
+                /债务/, /催款/
+            ];
+
+            // 优先级1：精确匹配
+            for (let key in legalQA) {
+                if (cleanedInput.includes(key)) {
+                    return legalQA[key];
+                }
+            }
+
+            // 优先级2：正则匹配
+            for (let pattern of patterns) {
+                if (pattern.test(cleanedInput)) {
+                    return legalQA["借款"];
+                }
+            }
+
+            // 默认响应
+            return {
+                answer: "建议咨询专业律师获取详细帮助<br><small>法律援助热线：12348</small>",
+                related: []
+            };
+        }
+
+        // ================== 核心问答功能 ==================
+        function getAIResponse() {
+            const input = document.getElementById('userInput').value.trim();
+            const chatArea = document.getElementById('chatArea');
+            
+            if (!input) {
+                showToast('请输入有效问题', 'danger');
+                return;
+            }
+
+            // 显示用户消息
+            chatArea.innerHTML += `
+                <div class="user-message p-3 mb-2 ms-auto">
+                    ${input}
+                </div>
+            `;
+
+            // 获取并显示AI回复
+            setTimeout(() => {
+                const result = analyzeQuestion(input);
+                const response = `
+                    <div class="ai-message p-3 mb-2">
+                        <strong>AI法律顾问：</strong>
+                        ${result.answer}
+                        ${result.related.length ? `
+                        <div class="mt-2 text-muted">
+                            相关推荐：${result.related.join(' | ')}
+                        </div>` : ''}
+                    </div>
+                `;
+                
+                chatArea.innerHTML += response;
+                chatArea.scrollTop = chatArea.scrollHeight;
+            }, 800);
+
+            document.getElementById('userInput').value = '';
+        }
+
+        // ================== 普法游戏系统 ==================
+        const legalGames = [
+            {
+                title: "劳动法闯关",
+                questions: [
+                    {
+                        q: "试用期最长几个月？",
+                        options: ["1个月", "6个月", "12个月"],
+                        answer: 1
+                    },
+                    {
+                        q: "每周标准工作时间？",
+                        options: ["40小时", "44小时", "48小时"],
+                        answer: 1
+                    }
+                ]
+            }
+        ];
+
+        function initGames() {
+            const container = document.getElementById('gameContainer');
+            legalGames.forEach((game, index) => {
+                container.innerHTML += `
+                    <div class="col-md-4">
+                        <div class="game-card card h-100" onclick="startGame(${index})">
+                            <div class="card-body">
+                                <h5 class="card-title">${game.title}</h5>
+                                <p class="text-muted">点击开始挑战</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function startGame(index = 0) {
+            const game = legalGames[index];
+            let score = 0;
+            
+            game.questions.forEach((q, i) => {
+                const userAns = prompt(`第${i+1}题：${q.q}\n选项：${q.options.join(', ')}`);
+                if(parseInt(userAns) === q.answer) score++;
+            });
+
+            alert(`答题完成！正确率：${score}/${game.questions.length}`);
+        }
+
+        // ================== 辅助功能 ==================
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type} border-0`;
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            new bootstrap.Toast(toast).show();
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // ================== 初始化 ==================
+        window.onload = function() {
+            initGames();
+            document.getElementById('chatArea').innerHTML = `
+                <div class="ai-message p-3 mb-2">
+                    <strong>AI助手：</strong>您好！可咨询劳动纠纷、借款纠纷等问题
+                </div>
+            `;
+        };
+    </script>
+</body>
+</html>
